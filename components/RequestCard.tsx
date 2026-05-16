@@ -9,6 +9,7 @@ type Props = {
   highlightTerms?: string[];
   index?: number;
   debugMode?: boolean;
+  onDeleted?: (title: string) => void;
 };
 
 function escapeRegExp(value: string) {
@@ -48,9 +49,15 @@ export default function RequestCard({
   highlightTerms = [],
   index = 0,
   debugMode = false,
+  onDeleted,
 }: Props) {
   const [loading, setLoading] = useState(false);
   const [pulseClass, setPulseClass] = useState("");
+  const [isDeleted, setIsDeleted] = useState(false);
+  const [notice, setNotice] = useState<null | {
+    type: "success" | "error";
+    text: string;
+  }>(null);
   const [confirmState, setConfirmState] = useState<null | {
     type: "status" | "delete";
     payload?: any;
@@ -81,13 +88,19 @@ export default function RequestCard({
     const json = await res.json();
     setLoading(false);
     if (json.ok) {
+      setNotice(null);
       // Revalidate any paged request keys (supports useSWRInfinite keys)
       mutate(
         (key: any) =>
           typeof key === "string" && key.startsWith("/api/requests"),
       );
       mutate("/api/dashboard/stats");
-    } else alert(json.error || "Failed");
+    } else {
+      setNotice({
+        type: "error",
+        text: json.error || "Failed to update request status.",
+      });
+    }
   }
 
   async function deleteRequest() {
@@ -97,20 +110,28 @@ export default function RequestCard({
 
   async function doDeleteRequest() {
     setConfirmState(null);
-    if (!confirm) {
-      // just safety, though UI should not allow this path
-    }
     setLoading(true);
     const res = await fetch(`/api/requests/${req._id}`, { method: "DELETE" });
     const json = await res.json();
     setLoading(false);
     if (json.ok) {
-      mutate(
-        (key: any) =>
-          typeof key === "string" && key.startsWith("/api/requests"),
-      );
-      mutate("/api/dashboard/stats");
-    } else alert(json.error || "Failed");
+      setIsDeleted(true);
+      setNotice(null);
+      onDeleted?.(req.title);
+      // Revalidate lists and stats so the board updates without a full page reload.
+      try {
+        mutate(
+          (key: any) =>
+            typeof key === "string" && key.startsWith("/api/requests"),
+        );
+        mutate("/api/dashboard/stats");
+      } catch (e) {}
+    } else {
+      setNotice({
+        type: "error",
+        text: json.error || "Failed to delete request.",
+      });
+    }
   }
 
   // Add a one-time pulse when the card mounts to draw attention
@@ -119,6 +140,8 @@ export default function RequestCard({
     const t = setTimeout(() => setPulseClass(""), 900);
     return () => clearTimeout(t);
   }, []);
+
+  if (isDeleted) return null;
 
   return (
     <article
@@ -140,7 +163,7 @@ export default function RequestCard({
       </div>
       {showDetails ? (
         <>
-          <p className="mt-3 text-sm leading-6 text-slate-700 break-words whitespace-normal">
+          <p className="mt-3 text-sm leading-6 text-slate-700 wrap-break-word whitespace-normal">
             <HighlightText text={req.description} terms={highlightTerms} />
           </p>
           {/* The assessment asks for visible job details, so we render them in a structured block. */}
@@ -244,14 +267,31 @@ export default function RequestCard({
           </label>
 
           <button
+            type="button"
             disabled={loading}
-            onClick={deleteRequest}
+            onClick={(event) => {
+              event.preventDefault();
+              event.stopPropagation();
+              deleteRequest();
+            }}
             className="rounded-xl bg-red-600 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-70"
           >
             Delete
           </button>
         </div>
       )}
+
+      {notice ? (
+        <div
+          className={`mt-3 rounded-xl border px-3 py-2 text-sm ${
+            notice.type === "error"
+              ? "border-red-200 bg-red-50 text-red-700"
+              : "border-emerald-200 bg-emerald-50 text-emerald-700"
+          }`}
+        >
+          {notice.text}
+        </div>
+      ) : null}
 
       {/* Custom confirmation modal to replace native confirm() */}
       {confirmState ? (
@@ -280,6 +320,7 @@ export default function RequestCard({
               </button>
               {confirmState.type === "delete" ? (
                 <button
+                  type="button"
                   onClick={() => doDeleteRequest()}
                   className="rounded-xl bg-red-600 px-4 py-2 text-sm font-medium text-white"
                 >
@@ -287,6 +328,7 @@ export default function RequestCard({
                 </button>
               ) : (
                 <button
+                  type="button"
                   onClick={() => doUpdateStatus(confirmState.payload)}
                   className="rounded-xl bg-brand px-4 py-2 text-sm font-medium text-white"
                 >

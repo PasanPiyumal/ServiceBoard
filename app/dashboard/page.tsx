@@ -11,6 +11,10 @@ export default function DashboardPage() {
   const [user, setUser] = useState<{ name?: string; email?: string } | null>(
     null,
   );
+  const [flashNotice, setFlashNotice] = useState<null | {
+    type: "success" | "error";
+    message: string;
+  }>(null);
 
   useEffect(() => {
     const token = localStorage.getItem("sr_token");
@@ -28,6 +32,28 @@ export default function DashboardPage() {
       }
     }
   }, [router]);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    const raw = window.sessionStorage.getItem("sr_flash_notice");
+    if (!raw) return;
+
+    try {
+      const parsed = JSON.parse(raw);
+      if (parsed?.message && parsed?.type) {
+        setFlashNotice({
+          type: parsed.type,
+          message: parsed.message,
+        });
+        window.sessionStorage.removeItem("sr_flash_notice");
+        const timeout = window.setTimeout(() => setFlashNotice(null), 3500);
+        return () => window.clearTimeout(timeout);
+      }
+    } catch {
+      window.sessionStorage.removeItem("sr_flash_notice");
+    }
+  }, [tab]);
 
   function setTabAndPush(t: "home" | "details") {
     setTab(t);
@@ -50,6 +76,20 @@ export default function DashboardPage() {
           </p>
         </div>
       </section>
+
+      {flashNotice ? (
+        <div className="mt-4 rounded-2xl border border-slate-200 bg-white/95 p-4 shadow-lg backdrop-blur-md">
+          <div
+            className={`rounded-xl px-4 py-3 text-sm font-medium ${
+              flashNotice.type === "success"
+                ? "border border-emerald-200 bg-emerald-50 text-emerald-800"
+                : "border border-red-200 bg-red-50 text-red-800"
+            }`}
+          >
+            {flashNotice.message}
+          </div>
+        </div>
+      ) : null}
 
       {tab === "home" ? (
         <HomeView

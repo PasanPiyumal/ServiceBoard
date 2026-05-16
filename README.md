@@ -1,36 +1,107 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Service Request Board
 
-## Getting Started
+This is the Service Request Board application — a Next.js full-stack app (client + API routes) using MongoDB Atlas for persistence. It provides signup/login, a request creation form, an owner dashboard with server-side search, filters, sorting, and infinite pagination.
 
-First, run the development server:
+## Features
+
+- Signup / Login (JWT auth with auto-login)
+- Create requests (stored in MongoDB Atlas)
+- Dashboard with request list and details
+- Server-side search, filters, and sorting
+- Server pagination + client infinite scroll
+- In-app confirmation modal for deletes (no native confirm)
+- Toast notifications for create/delete (create toast persists across navigation)
+
+## Quick start (development)
+
+1. Prerequisites
+
+- Node.js 18+ and npm installed
+- A MongoDB Atlas cluster (free tier works)
+
+2. Clone the repo
+
+```bash
+git clone https://github.com/PasanPiyumal/ServiceBoard
+cd ServiceBoard/my-app
+```
+
+3. Install dependencies
+
+```bash
+npm install
+```
+
+4. Create a `.env` file in `my-app/` with the following (replace placeholders)
+
+```env
+MONGODB_URI="<your-mongodb-connection-string>"
+JWT_SECRET="a-strong-secret-for-jwt"
+NEXT_PUBLIC_SITE_URL="http://localhost:3000"
+# Add other env vars as needed
+```
+
+5. Start the development server
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open http://localhost:3000 in your browser.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Test account (local testing)
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+You can create an account using the app's Signup page, or use the test credentials below to log in immediately in a local environment:
 
-## Learn More
+- Email: pasan@gmail.com
+- Password: pasan1234
 
-To learn more about Next.js, take a look at the following resources:
+> NOTE: These credentials are for local testing only — do not use them in production.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Build for production
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+```bash
+npm run build
+npm run start
+```
 
-## Deploy on Vercel
+## API endpoints (summary)
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+- `POST /api/auth/signup` — create an account
+- `POST /api/auth/login` — login and receive token
+- `GET /api/requests` — list requests (supports query params: `mine`, `q`, `status`, `page`, `limit`, `sort`)
+- `POST /api/requests` — create request
+- `PATCH /api/requests/:id` — update request status
+- `DELETE /api/requests/:id` — delete request
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Deployment
+
+- Provide `MONGODB_URI` and `JWT_SECRET` in your host's environment
+- Build and start with `npm run build` / `npm run start`
+
+## Repository
+
+- GitHub repo name: `ServiceBoard`
+
+Push your local changes to GitHub:
+
+```bash
+git remote add origin git@github.com:<your-username>/ServiceBoard.git
+git branch -M main
+git push -u origin main
+```
+
+## Troubleshooting
+
+- If you see stale UI changes after editing, kill any stale dev server processes (port conflicts can cause the app to run on a different port). On Windows, kill the process holding port 3000 and restart `npm run dev`.
+- If the add/delete toast does not appear, hard-refresh the page (Ctrl+F5) to clear cached bundles.
+
+## Next steps (optional)
+
+- Add a seed script to automatically create the test user in MongoDB
+- Make toast wording and styles fully consistent across the app
+- Add CI/CD deploy instructions for Vercel or another host
+
+## Contact
+
+Owner / test account: pasan@gmail.com

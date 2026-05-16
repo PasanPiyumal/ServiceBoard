@@ -9,6 +9,15 @@ import { readStoredToken } from "../lib/auth-storage";
 
 function getInitialFilterValue(key: string, fallback: string) {
   if (typeof window === "undefined") return fallback;
+      if (typeof window !== "undefined") {
+        window.sessionStorage.setItem(
+          "sr_flash_notice",
+          JSON.stringify({
+            type: "success",
+            message: "Job request added successfully.",
+          }),
+        );
+      }
   const params = new URLSearchParams(window.location.search || "");
   const value = params.get(key);
   return value && value.trim() ? value : fallback;
@@ -128,6 +137,11 @@ export default function RequestBoard({
     message: string;
   }>(null);
 
+  function showNotice(message: string, type: "success" | "error") {
+    setNotice({ type, message });
+    setTimeout(() => setNotice(null), 3500);
+  }
+
   async function submit(e: any) {
     e.preventDefault();
     setIsSubmitting(true);
@@ -164,18 +178,10 @@ export default function RequestBoard({
       } catch (e) {}
       await mutate();
       globalMutate("/api/dashboard/stats");
-      setNotice({
-        type: "success",
-        message: "Job request added successfully.",
-      });
-      setTimeout(() => setNotice(null), 3500);
+      showNotice("Job request added successfully.", "success");
       if (onCreated) onCreated();
     } else {
-      setNotice({
-        type: "error",
-        message: json.error || "Failed to create request.",
-      });
-      setTimeout(() => setNotice(null), 3500);
+      showNotice(json.error || "Failed to create request.", "error");
     }
     setIsSubmitting(false);
   }
@@ -520,9 +526,26 @@ export default function RequestBoard({
             showDetails={showDetails}
             highlightTerms={searchTerms}
             debugMode={debugMode}
+            onDeleted={(title) =>
+              showNotice(`Job card "${title}" deleted successfully.`, "success")
+            }
           />
         ))}
       </div>
+
+      {notice ? (
+        <div className="fixed bottom-6 right-6 z-50 w-[min(92vw,26rem)] rounded-2xl border border-slate-200 bg-white/95 p-4 shadow-2xl backdrop-blur-md">
+          <div
+            className={`rounded-xl px-4 py-3 text-sm font-medium ${
+              notice.type === "success"
+                ? "border border-emerald-200 bg-emerald-50 text-emerald-800"
+                : "border border-red-200 bg-red-50 text-red-800"
+            }`}
+          >
+            {notice.message}
+          </div>
+        </div>
+      ) : null}
 
       <div className="mt-6 flex items-center justify-center flex-col gap-3">
         {isLoading && <div className="text-sm text-slate-500">Loading...</div>}
