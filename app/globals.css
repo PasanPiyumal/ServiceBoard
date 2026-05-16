@@ -1,26 +1,176 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #f2f5f9;
+  --foreground: #0f172a;
+  --surface: #ffffff;
+  --surface-soft: #eaf0f8;
+  --border: #d5dfeb;
+  --brand: #0f766e;
+  --brand-strong: #0b4f6f;
+  --brand-accent: #f59e0b;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
+  --color-surface: var(--surface);
+  --color-surface-soft: var(--surface-soft);
+  --color-border-soft: var(--border);
+  --color-brand: var(--brand);
+  --color-brand-strong: var(--brand-strong);
+  --color-brand-accent: var(--brand-accent);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    --background: #f2f5f9;
+    --foreground: #0f172a;
   }
 }
 
 body {
-  background: var(--background);
+  background:
+    radial-gradient(circle at 10% 10%, #d8eef8 0%, transparent 35%),
+    radial-gradient(circle at 90% 0%, #fce8cc 0%, transparent 30%),
+    var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-geist-sans), "Segoe UI", sans-serif;
+}
+
+.sr-glass {
+  background: color-mix(in srgb, var(--surface) 78%, white 22%);
+  border: 1px solid color-mix(in srgb, var(--border) 85%, white 15%);
+  box-shadow:
+    0 1px 2px rgba(15, 23, 42, 0.04),
+    0 10px 22px rgba(15, 23, 42, 0.06);
+}
+
+.sr-fade-up {
+  opacity: 0;
+  animation: srFadeUp 550ms ease-out forwards;
+}
+
+.sr-delay-1 {
+  animation-delay: 90ms;
+}
+
+.sr-delay-2 {
+  animation-delay: 180ms;
+}
+
+.sr-delay-3 {
+  animation-delay: 270ms;
+}
+
+.sr-delay-4 {
+  animation-delay: 360ms;
+}
+
+@keyframes srFadeUp {
+  from {
+    opacity: 0;
+    transform: translateY(18px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Stronger entrance for debug/visibility */
+.sr-fade-up-strong {
+  opacity: 0;
+  animation: srFadeUpStrong 650ms cubic-bezier(.2,.9,.2,1) forwards;
+}
+
+@keyframes srFadeUpStrong {
+  from {
+    opacity: 0;
+    transform: translateY(28px) scale(0.985);
+    filter: blur(2px);
+  }
+  60% {
+    transform: translateY(-6px) scale(1.02);
+    filter: blur(0);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* One-time pulse for new cards */
+.sr-pulse-once {
+  animation: srPulseOnce 900ms ease-out;
+}
+
+@keyframes srPulseOnce {
+  0% { box-shadow: 0 0 0 0 rgba(15,23,42,0.06); transform: scale(1); }
+  50% { box-shadow: 0 10px 30px -10px rgba(15,23,42,0.12); transform: scale(1.01); }
+  100% { box-shadow: 0 1px 2px rgba(15,23,42,0.04); transform: scale(1); }
+}
+
+/* Debug banner */
+.sr-debug-banner {
+  position: fixed;
+  right: 16px;
+  top: 72px;
+  z-index: 60;
+  background: linear-gradient(90deg,#0f766e,#0b4f6f);
+  color: white;
+  padding: 8px 12px;
+  border-radius: 999px;
+  font-size: 12px;
+  box-shadow: 0 6px 20px rgba(15,23,42,0.12);
+}
+
+/* Darker skeleton base for visibility */
+.skeleton {
+  position: relative;
+  overflow: hidden;
+  background: linear-gradient(90deg, rgba(230,235,240,0.9), rgba(245,245,245,0.85));
+}
+
+.skeleton::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: -150%;
+  height: 100%;
+  width: 150%;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.6), transparent);
+  animation: shimmer 1200ms linear infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sr-fade-up {
+    animation: none !important;
+    transform: none !important;
+    opacity: 1 !important;
+  }
+}
+
+/* Skeleton shimmer */
+.skeleton {
+  position: relative;
+  overflow: hidden;
+  background: linear-gradient(90deg, rgba(255,255,255,0.6), rgba(245,245,245,0.6));
+}
+
+.skeleton::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: -150%;
+  height: 100%;
+  width: 150%;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.6), transparent);
+  animation: shimmer 1200ms linear infinite;
+}
+
+@keyframes shimmer {
+  to { transform: translateX(150%); }
 }
