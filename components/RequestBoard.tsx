@@ -9,15 +9,15 @@ import { readStoredToken } from "../lib/auth-storage";
 
 function getInitialFilterValue(key: string, fallback: string) {
   if (typeof window === "undefined") return fallback;
-      if (typeof window !== "undefined") {
-        window.sessionStorage.setItem(
-          "sr_flash_notice",
-          JSON.stringify({
-            type: "success",
-            message: "Job request added successfully.",
-          }),
-        );
-      }
+  if (typeof window !== "undefined") {
+    window.sessionStorage.setItem(
+      "sr_flash_notice",
+      JSON.stringify({
+        type: "success",
+        message: "Job request added successfully.",
+      }),
+    );
+  }
   const params = new URLSearchParams(window.location.search || "");
   const value = params.get(key);
   return value && value.trim() ? value : fallback;
